@@ -1,0 +1,145 @@
+name: FoodApp
+
+entities:
+  User:
+    authenticable: true
+    properties:
+      - name
+      - name: email
+        type: email
+      - name: role
+        type: choice
+        options:
+          values: [customer, owner, admin]
+        default: customer
+    policies:
+      create:
+        - access: admin
+      read:
+        - access: restricted
+          allow: User
+          condition: self
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: admin
+      signup:
+        - access: public
+
+  Restaurant:
+    properties:
+      - name: name
+        type: string
+      - name: description
+        type: text
+      - name: address
+        type: text
+      - name: photo
+        type: image
+        options:
+          sizes:
+            thumbnail:
+              width: 200
+              height: 200
+            large:
+              width: 800
+    belongsTo:
+      - name: owner
+        entity: User
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: public
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: restricted
+          allow: User
+          condition: self
+
+  MenuItem:
+    properties:
+      - name: name
+        type: string
+      - name: description
+        type: text
+      - name: price
+        type: money
+        options:
+          currency: 'USD'
+      - name: category
+        type: choice
+        options:
+          values: [Appetizer, Main, Dessert, Beverage]
+        default: Main
+      - name: photo
+        type: image
+        options:
+          sizes:
+            thumbnail:
+              width: 150
+              height: 150
+    belongsTo:
+      - Restaurant
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: public
+      update:
+        - access: restricted
+          allow: User
+      delete:
+        - access: restricted
+          allow: User
+
+  Order:
+    properties:
+      - name: status
+        type: choice
+        options:
+          values: [pending, confirmed, preparing, delivered, cancelled]
+        default: pending
+      - name: total
+        type: money
+        options:
+          currency: 'USD'
+    belongsTo:
+      - name: customer
+        entity: User
+      - Restaurant
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: restricted
+          allow: User
+          condition: self
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: admin
+
+
+# Health check endpoint for connection testing
+endpoints:
+  health:
+    path: /api/health
+    method: GET
+    policies: []
+    handler: healthCheck
+
+# CORS configuration
+cors:
+  enabled: true
+  config: cors.js
